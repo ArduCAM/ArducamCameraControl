@@ -3,13 +3,13 @@ layout: plugin
 
 id: ArducamCameraControl
 title: ArducamCameraControl
-description: TODO
+description: Plugin to control Arducam motorized and ptz camera
 authors:
 - Arducam
 license: AGPLv3
 
 # TODO
-date: today's date in format YYYY-MM-DD, e.g. 2015-04-21
+date: 2021-06-07
 
 homepage: https://github.com/arducam/ArducamCameraControl
 source: https://github.com/arducam/ArducamCameraControl
@@ -22,24 +22,22 @@ archive: https://github.com/arducam/ArducamCameraControl/archive/master.zip
 
 # TODO
 tags:
-- a list
-- of tags
-- that apply
-- to your plugin
-- (take a look at the existing plugins for what makes sense here)
+- Arducam
+- Camera
+
 
 # TODO
-screenshots:
-- url: url of a screenshot, /assets/img/...
-  alt: alt-text of a screenshot
-  caption: caption of a screenshot
-- url: url of another screenshot, /assets/img/...
-  alt: alt-text of another screenshot
-  caption: caption of another screenshot
-- ...
+# screenshots:
+# - url: url of a screenshot, /assets/img/...
+#   alt: alt-text of a screenshot
+#   caption: caption of a screenshot
+# - url: url of another screenshot, /assets/img/...
+#   alt: alt-text of another screenshot
+#   caption: caption of another screenshot
+# - ...
 
 # TODO
-featuredimage: url of a featured image for your plugin, /assets/img/...
+featuredimage: assets/img/plugins/ArducamCameraControl/ArducamCameraControl.png
 
 # TODO
 # You only need the following if your plugin requires specific OctoPrint versions or
@@ -80,9 +78,6 @@ compatibility:
 
   os:
   - linux
-  - windows
-  - macos
-  - freebsd
 
   # Compatible Python version
   #
@@ -94,9 +89,61 @@ compatibility:
   # is EOL), leave at ">=2.7,<3" - be aware that your plugin will not be allowed to register on the
   # plugin repository if it only support Python 2.
 
-  python: ">=2.7,<3"
+  python: ">=2.7,<4"
 
 ---
 
-**TODO**: Longer description of your plugin, configuration examples etc. This part will be visible on the page at
+# ArducamCameraControl  
+
+A plugin to control your arducam camera with motorized and ptz camera on octoprint.  
+![screenshot](assets/img/plugins/ArducamCameraControl/ArducamCameraControl.png)
+## Install  
+Please follow the manufacturer's instructions:
+#### I2C 
+This plugin uses I2C to communicate with the camera.  That is not enabled by default.  The ArduCamFocus plugin will not function until
+you enable I2C.
+  ssh to your octopi and enter this commands (this only needs to be done once):
+```bash
+if ! grep -Fxq "^#ArduCamFocus$" /boot/config.txt; then
+sudo cat << end_of_file > /boot/config.txt
+#ArduCamFocus
+dtparam=i2c_vc=on
+dtparam=i2c_arm=on
+end_of_file
+fi
+```
+After executing the above command, the file /boot/config.txt should now have the commands to enable I2C.  In addition, you have to enable the I2C
+kernel module using raspi-config.  Again, ssh to your octopi, and then enter this command:
+```bash
+sudo raspi-config
+```
+
+1. select "5 Interfacing Options"
+2. select "P5 I2C"
+3. raspi-config will ask, "Would you like the ARM I2C interface to be enabled?"
+4. select "Yes"
+5. you should see, "The ARM I2C interface is enabled"
+6. select "Finish"
+
+#### Smbus
+Install smbus
+```shell  
+pip install smbus
+```
+
+
+#### Plugin  
+Install plugin
 http://plugins.octoprint.org/plugin/ArducamCameraControl/
+
+After you reboot, the camera should become operational in OctoPrint
+## Settings
+
+This plugin has no configurable settings.
+
+
+
+
+
+ 
+

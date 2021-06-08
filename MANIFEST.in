@@ -1,0 +1,4 @@
+include README.md
+recursive-include ArducamCameraControl/templates *
+recursive-include ArducamCameraControl/translations *
+recursive-include ArducamCameraControl/static *

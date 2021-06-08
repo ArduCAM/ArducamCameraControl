@@ -25,6 +25,7 @@ class ArducamcameracontrolPlugin(octoprint.plugin.SettingsPlugin,
 
 
 	def on_after_startup(self): 
+		global ID
 		ID = self.inquire()
 		self._plugin_manager.send_plugin_message(self._identifier, dict(id=ID))
 		if ID=='0':
@@ -41,38 +42,19 @@ class ArducamcameracontrolPlugin(octoprint.plugin.SettingsPlugin,
 
 
 
+
+
 	def ptz_zoom (self, f): 
-			databuf=[0xff,0xff]
-			databuf[0]=(f>>8)&0xff
-			databuf[1]=f&0xff 
-			state=self.bus.read_i2c_block_data(0x0c,0x04,2)
-			if (state[1]&0x01)==0:
-				if self.bus:
-					write_attempts = 10
-					while write_attempts:
-						try:
-							self.bus.write_i2c_block_data(0xc,0x00, databuf)
-						except IOError:
-							write_attempts -= 1
-						else:
-							break
-					if not write_attempts:
-						self._plugin_manager.send_plugin_message(self._identifier, dict(error="Trouble accessing camera. I2C bus failure.  Is camera plugged in?"))
-				else:
-					self._plugin_manager.send_plugin_message(self._identifier, dict(error="unable to use SMBus/I2C"))	
-
-
-	def ptz_focus (self, f): 
 		databuf=[0xff,0xff]
 		databuf[0]=(f>>8)&0xff
-		databuf[1]=f&0xff
+		databuf[1]=f&0xff 
 		state=self.bus.read_i2c_block_data(0x0c,0x04,2)
 		if (state[1]&0x01)==0:
 			if self.bus:
 				write_attempts = 10
 				while write_attempts:
 					try:
-						self.bus.write_i2c_block_data(0xc,0x01, databuf)
+						self.bus.write_i2c_block_data(0xc,0x00, databuf)
 					except IOError:
 						write_attempts -= 1
 					else:
@@ -82,6 +64,49 @@ class ArducamcameracontrolPlugin(octoprint.plugin.SettingsPlugin,
 			else:
 				self._plugin_manager.send_plugin_message(self._identifier, dict(error="unable to use SMBus/I2C"))	
 
+
+	def ptz_focus (self, f): 
+		if ID=='1':
+			databuf=[0xff,0xff]
+			databuf[0]=(f>>8)&0xff
+			databuf[1]=f&0xff
+			state=self.bus.read_i2c_block_data(0x0c,0x04,2)
+			if (state[1]&0x01)==0:
+				if self.bus:
+					write_attempts = 10
+					while write_attempts:
+						try:
+							self.bus.write_i2c_block_data(0xc,0x01, databuf)
+						except IOError:
+							write_attempts -= 1
+						else:
+							break
+					if not write_attempts:
+						self._plugin_manager.send_plugin_message(self._identifier, dict(error="Trouble accessing camera. I2C bus failure.  Is camera plugged in?"))
+				else:
+					self._plugin_manager.send_plugin_message(self._identifier, dict(error="unable to use SMBus/I2C"))	
+		elif ID=='0':
+			if f < 100:
+				f = 100
+			elif f > 1000:
+				f = 1000
+			value = (f << 4) & 0x3ff0
+			data1 = (value >> 8) & 0x3f
+			data2 = value & 0xf0
+			if self.bus:
+				write_attempts = 10
+				while write_attempts:
+					try:
+						self.bus.write_byte_data(0xc, data1, data2)
+					except IOError:
+						write_attempts -= 1
+					else:
+						break
+				if not write_attempts:
+					self._plugin_manager.send_plugin_message(self._identifier, dict(error="Trouble accessing camera. I2C bus failure.  Is camera plugged in?"))
+			else:
+				self._plugin_manager.send_plugin_message(self._identifier, dict(error="unable to use SMBus/I2C"))
+	
 	def ptz_pan (self, f): 
 		databuf=[0xff,0xff]
 		databuf[0]=(f>>8)&0xff
@@ -143,11 +168,14 @@ class ArducamcameracontrolPlugin(octoprint.plugin.SettingsPlugin,
 		i2c0flag=0
 		i2c1flag=0
 		for num in IP:
-			if num in ['0','1']:
+			if num in ['0','1','10']:
 				cmd = "i2cdetect -y %s | awk 'NR==2 {print $11}'" % num
 				data = subprocess.check_output(cmd, shell=True).decode('utf-8')
 				if data=="0c\n":
-					return num
+					if num=='1':
+						return num
+					else:
+						return '0'
 		if i2c0flag==0 and i2c1flag==0:
 			return '2'
 

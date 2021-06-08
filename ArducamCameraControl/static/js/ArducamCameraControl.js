@@ -87,6 +87,7 @@ $(function() {
         }
     
         self.onDataUpdaterPluginMessage = function(plugin, data) {
+            console.log(data)
             if (plugin != "ArducamCameraControl") {
                 return
             }

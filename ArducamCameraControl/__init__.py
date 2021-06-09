@@ -38,7 +38,7 @@ class ArducamcameracontrolPlugin(octoprint.plugin.SettingsPlugin,
 
 
 	def get_template_configs(self):
-			return [dict(type="generic",custom_bindings=False, template="ArducamCameraControl.jinja2")]
+			return [dict(type="generic",custom_bindings=False)]
 
 
 

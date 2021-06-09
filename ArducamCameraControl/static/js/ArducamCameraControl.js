@@ -17,7 +17,7 @@ $(function() {
         // TODO: Implement your plugin's view model here.
 
         self.onStartup = function() {
-            $('#control-jog-custom').append($('#arducam-camera-control'))
+            $('#control-jog-custom').append($('#arducam_camera_control'))
             $("#control-til-up").click(function() {
                 self.sendReq('ptz_til',til+step > 180 ? 180:til+step,function(){
                     til = til+step > 180 ? 180:til+step;

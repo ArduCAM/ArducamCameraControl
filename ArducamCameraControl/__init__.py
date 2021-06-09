@@ -231,7 +231,7 @@ class ArducamcameracontrolPlugin(octoprint.plugin.SettingsPlugin,
 		return [
 			dict(key="ADMIN",
 				 name="Admin",
-				 description="Access to control of robot",
+				 description="Access to control of camera",
 				 roles=["admin"],
 				 dangerous=True,
 				 default_groups=[ADMIN_GROUP])

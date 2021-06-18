@@ -31,7 +31,7 @@ $(function() {
                 })
             })
             $("#control-pan-right").click(function() {
-                self.sendReq('ptz_pan',pan+step > 180 ? 180:til+step,function(){
+                self.sendReq('ptz_pan',pan+step > 180 ? 180:pan+step,function(){
                     pan = pan+step > 180 ? 180:pan+step;
                     $('#contrl-pan-til-label').text(pan)
                 })
@@ -59,41 +59,21 @@ $(function() {
                 const arm= parseInt(this.value);
                 self.sendReq('ptz_focus', arm, function() {});                              
             });
-            $("ircut").click(function() {
+            $("#ircut").click(function() {
                 
                 if (this.innerText === "ON") {
                     self.sendReq("ptz_ircut", 1, function(){
-                        $("ircut").text('OFF')
+                        $("#ircut").text('OFF')
                     })
                 } else {
                     self.sendReq("ptz_ircut", 0, function(){
-                        $("ircut").text('ON')
+                        $("#ircut").text('ON')
                     })
                 }
             })
-    }
-
-
-        self.sendReq = function(command, value, fn) {
-            $.ajax({
-                url: `plugin/arducamcameracontrol`,
-                type: 'POST',
-                dataType: "json",
-                data: JSON.stringify({
-                    command: command,
-                    value: value
-                })
-            }).done(()=>{if(fn){fn()}})
-        }
-    
-        self.onDataUpdaterPluginMessage = function(plugin, data) {
-            // console.log(data)
-            if (plugin != "ArducamCameraControl") {
-                return
-            }
-
-            if (data.ID) {
-                switch (data.ID) {
+            self.sendReq("get_id", 0, function(c) {
+                // console.log(c)
+                switch (c) {
                     case "0":
                         $('#control-til-pan button').each(function() {$(this).attr('disabled',true)})
                         $('#ircut').attr('disabled',true);
@@ -109,9 +89,28 @@ $(function() {
                     default:
                         break;
                 }
-            }
+            })
 
-            
+            self.sendReq("paramme", 0, function() {
+
+            })
+
+    }
+
+
+        self.sendReq = function(command, value, fn) {
+            $.ajax({
+                url: `/api/plugin/ArducamCameraControl?command=${command}&value=${value}`,
+                type: 'GET',
+                dataType: 'text'
+            }).done((c)=>{if(fn){fn(c)}})
+        }
+    
+        self.onDataUpdaterPluginMessage = function(plugin, data) {
+            if (plugin != "ArducamCameraControl") {
+                return
+            }
+            // console.log(data)            
         }
         
         

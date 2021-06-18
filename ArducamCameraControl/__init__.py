@@ -27,7 +27,6 @@ class ArducamcameracontrolPlugin(octoprint.plugin.SettingsPlugin,
 	def on_after_startup(self): 
 		global ID
 		ID = self.inquire()
-		self._plugin_manager.send_plugin_message(self._identifier, dict(id=ID))
 		if ID=='0':
 			ID='10'
 		else:
@@ -73,6 +72,7 @@ class ArducamcameracontrolPlugin(octoprint.plugin.SettingsPlugin,
 			state=self.bus.read_i2c_block_data(0x0c,0x04,2)
 			if (state[1]&0x01)==0:
 				if self.bus:
+					self._plugin_manager.send_plugin_message(self._identifier, dict(info="here focus"))
 					write_attempts = 10
 					while write_attempts:
 						try:
@@ -85,7 +85,7 @@ class ArducamcameracontrolPlugin(octoprint.plugin.SettingsPlugin,
 						self._plugin_manager.send_plugin_message(self._identifier, dict(error="Trouble accessing camera. I2C bus failure.  Is camera plugged in?"))
 				else:
 					self._plugin_manager.send_plugin_message(self._identifier, dict(error="unable to use SMBus/I2C"))	
-		elif ID=='0':
+		elif ID=='10':
 			if f < 100:
 				f = 100
 			elif f > 1000:
@@ -179,34 +179,35 @@ class ArducamcameracontrolPlugin(octoprint.plugin.SettingsPlugin,
 		if i2c0flag==0 and i2c1flag==0:
 			return '2'
 
-
-	def on_api_command(self, command, data):
+	def on_api_get(self, request):
 		if not Permissions.PLUGIN_ARDUCAMCAMERACONTROL_ADMIN.can():
 			return flask.make_response("Not Admin!", 403)	
 		if time.time() - self.time < 0.1:
 			return flask.make_response("Too Fast", 200)
 
+		command = request.args.get('command')
+		value = request.args.get('value')
+		value = int(value)
+
 		if command ==  "ptz_til":
 			self.time = time.time()
-			value = int("{value}".format(**data))
 			self.ptz_til(value)
 		elif command == "ptz_pan":
 			self.time = time.time()
-			value = int("{value}".format(**data))
 			self.ptz_pan(value)
 		elif command == "ptz_zoom":
 			self.time = time.time()
-			value = int("{value}".format(**data))
 			self.ptz_zoom(value)
 		elif command == "ptz_focus":
 			self.time = time.time()
-			value = int("{value}".format(**data))
 			self.ptz_focus(value)
 		elif command == "ptz_ircut":
 			self.time = time.time()
-			value = int("{value}".format(**data))
 			self.ptz_ircut(value)
-
+		elif command == "get_id":
+			return flask.make_response(self.inquire(), 200)
+			
+		return flask.make_response("ok", 200)
 
 
 	##~~ SettingsPlugin mixin

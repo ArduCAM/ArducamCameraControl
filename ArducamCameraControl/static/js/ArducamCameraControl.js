@@ -89,6 +89,11 @@ $(function() {
                     default:
                         break;
                 }
+            }, function() {
+                $('#control-til-pan button').each(function() {$(this).attr('disabled',true)})
+                $('#control-ptz-zoom').attr('disabled', true);
+                $('#control-ptz-focus').attr('disabled', true);
+                $('#ircut').attr('disabled',true);
             })
 
             self.sendReq("paramme", 0, function() {
@@ -98,11 +103,16 @@ $(function() {
     }
 
 
-        self.sendReq = function(command, value, fn) {
+        self.sendReq = function(command, value, fn, errCb) {
             $.ajax({
                 url: `/api/plugin/ArducamCameraControl?command=${command}&value=${value}`,
                 type: 'GET',
-                dataType: 'text'
+                dataType: 'text',
+                error: function() {
+                    if (errCb) {
+                        errCb()
+                    }
+                }
             }).done((c)=>{if(fn){fn(c)}})
         }
     

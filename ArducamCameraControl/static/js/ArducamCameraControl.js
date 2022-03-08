@@ -96,6 +96,11 @@ $(function() {
                 $('#ircut').attr('disabled',true);
             })
 
+            // Set Focus slider to last-saved focus level
+            self.sendReq("get_focus", 0, function(c) {
+                $('#control-ptz-focus').val(c);
+            }, function() {})
+
             self.sendReq("paramme", 0, function() {
 
             })

@@ -33,6 +33,9 @@ class ArducamcameracontrolPlugin(octoprint.plugin.SettingsPlugin,
             ID = '1'
         self.bus = smbus.SMBus(int(ID))
         self.time = time.time()
+        focus_level = self._settings.get(["focus_level"])
+        self._logger.info("Initializing focus level to {focus_level}".format(**locals()))
+        self.ptz_focus(focus_level) # Recall focus level since some cameras reset focus after restart
 
     def get_template_configs(self):
         return [dict(type="generic", custom_bindings=False)]
@@ -80,6 +83,10 @@ class ArducamcameracontrolPlugin(octoprint.plugin.SettingsPlugin,
                     if not write_attempts:
                         self._plugin_manager.send_plugin_message(self._identifier, dict(
                             error="Trouble accessing camera. I2C bus failure.  Is camera plugged in?"))
+                    else:
+                        self._settings.set(["focus_level"], f)
+                        self._settings.save()
+                        self._logger.info("Set and saved focus level of {f}".format(**locals()))
                 else:
                     self._plugin_manager.send_plugin_message(
                         self._identifier, dict(error="unable to use SMBus/I2C"))
@@ -103,6 +110,10 @@ class ArducamcameracontrolPlugin(octoprint.plugin.SettingsPlugin,
                 if not write_attempts:
                     self._plugin_manager.send_plugin_message(self._identifier, dict(
                         error="Trouble accessing camera. I2C bus failure.  Is camera plugged in?"))
+                else:
+                    self._settings.set(["focus_level"], f)
+                    self._settings.save()
+                    self._logger.info("Set and saved focus level of {f}".format(**locals()))
             else:
                 self._plugin_manager.send_plugin_message(
                     self._identifier, dict(error="unable to use SMBus/I2C"))
@@ -186,6 +197,9 @@ class ArducamcameracontrolPlugin(octoprint.plugin.SettingsPlugin,
         if i2c0flag == 0 and i2c1flag == 0:
             return '2'
 
+    def get_focus(self):
+        return str(self._settings.get(["focus_level"]))
+
     def on_api_get(self, request):
         if not Permissions.PLUGIN_ARDUCAMCAMERACONTROL_ADMIN.can():
             return flask.make_response("Not Admin!", 403)
@@ -205,6 +219,8 @@ class ArducamcameracontrolPlugin(octoprint.plugin.SettingsPlugin,
         elif command == "ptz_zoom":
             self.time = time.time()
             self.ptz_zoom(value)
+        elif command == "get_focus":
+            return flask.make_response(self.get_focus(), 200)
         elif command == "ptz_focus":
             self.time = time.time()
             self.ptz_focus(value)
@@ -220,7 +236,7 @@ class ArducamcameracontrolPlugin(octoprint.plugin.SettingsPlugin,
 
     def get_settings_defaults(self):
         return dict(
-            # put your plugin's default settings here
+            focus_level=512
         )
 
     # ~~ AssetPlugin mixin
